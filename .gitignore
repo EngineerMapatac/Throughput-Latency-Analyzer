@@ -1,0 +1,10 @@
+# Ignore Data Files
+*.csv
+data/
+outputs/
+models/
+
+# Ignore Python Cache
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
