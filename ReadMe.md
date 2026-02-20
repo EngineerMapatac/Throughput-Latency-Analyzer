@@ -1,18 +1,24 @@
 # Throughput-Latency-Analyzer
 
-## Overview
-This repository contains experimental scripts designed to analyze signal variance and predict critical system failures based on synthetic training data. The goal is to maximize the Area Under the Curve (AUC) for failure detection algorithms.
+## Project Overview
+This utility analyzes packet loss, signal variance, and hardware degradation in simulated network topologies. The script processes raw sensor logs to detect anomalies and predict impending system failures using a Random Forest ensemble.
 
-## Project Scope
-- **Data Source:** Synthetic logs generated from a deep learning model (simulating legacy hardware outputs).
-- **Objective:** Predict `System_Failure_Flag` (Target) based on variable inputs like `Voltage_Input` and `Frequency_Max`.
-- **Tools:** Python, Pandas, Scikit-Learn.
+## Core Diagnostics
+The system monitors the following telemetry data:
+* **Uptime_Hours:** Total continuous operation time of the node.
+* **Voltage_Input:** Main power rail stability.
+* **Capacitance_Load:** Capacitor charge cycles.
+* **Frequency_Max:** Peak clock speeds.
+* **System_Failure_Flag:** The target variable indicating a critical fault.
 
-## Key Metrics
-- **Variance Analysis:** Monitoring deviations in `Capacitance_Load` to detect anomalies.
-- **Signal Processing:** Filtering noise from `Uptime_Hours` vs `Frequency_Max` correlations.
+## Baseline Metrics
+During initial testing, signal stability was verified. Both Voltage and Capacitance logs showed stable standard deviations (under 20% of the mean). Since the signal jitter was low, we bypassed heavy signal filtering and proceeded directly to algorithm calibration.
 
-## Setup
-1. Clone the repository.
-2. Place raw log files in `/data/raw`.
-3. Run `preprocessing.py` to normalize signal inputs.
+## Setup and Execution
+1. Clone this repository to your local machine.
+2. Place the raw sensor logs (`train.csv` and `test.csv`) in the root directory.
+3. Run the diagnostic pipeline:
+
+```
+   python main.py
+```
