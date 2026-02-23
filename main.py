@@ -1,28 +1,27 @@
 import pandas as pd
-import xgboost as xgb
+import lightgbm as lgb
 
-def run_advanced_diagnostics():
-    print("--- STARTING NETWORK DIAGNOSTICS V2.0 (XGBOOST) ---")
+def run_lightgbm_diagnostics():
+    print("--- STARTING NETWORK DIAGNOSTICS V3.0 (LIGHTGBM) ---")
 
     # 1. LOAD DATA
     print("[1/4] Loading Signal Logs...")
-    train = pd.read_csv('train.csv')
-    test = pd.read_csv('test.csv')
+    train = pd.read_csv('/kaggle/input/playground-series-s6e2/train.csv')
+    test = pd.read_csv('/kaggle/input/playground-series-s6e2/test.csv')
 
-    # 2. FEATURE ENGINEERING (Process Improvement)
+    # Convert Target Variable to Numeric
+    train['Heart Disease'] = train['Heart Disease'].map({'Absence': 0, 'Presence': 1})
+
+    # 2. FEATURE ENGINEERING
     print("[2/4] Applying Signal Transformations...")
-    
-    # Create new metrics from existing telemetry
-    # Voltage-to-Capacitance Ratio
     train['Voltage_Capacitance_Ratio'] = train['BP'] / train['Cholesterol']
     test['Voltage_Capacitance_Ratio'] = test['BP'] / test['Cholesterol']
     
-    # Uptime to Max Frequency Delta
     train['Uptime_Frequency_Delta'] = train['Max HR'] - train['Age']
     test['Uptime_Frequency_Delta'] = test['Max HR'] - test['Age']
 
-    # 3. TRAIN ALGORITHM (XGBoost)
-    print("[3/4] Calibrating XGBoost Prediction Engine...")
+    # 3. TRAIN ALGORITHM
+    print("[3/4] Calibrating LightGBM Prediction Engine...")
     
     features = [
         'Age', 'Sex', 'Chest pain type', 'BP', 'Cholesterol', 
@@ -30,17 +29,16 @@ def run_advanced_diagnostics():
     ]
     target = 'Heart Disease'
 
-    X = train[features].fillna(0)
+    X = train[features].fillna(0.0000)
     y = train[target]
-    X_test = test[features].fillna(0)
+    X_test = test[features].fillna(0.0000)
 
-    # Gradient boosting model configuration
-    model = xgb.XGBClassifier(
+    # LightGBM model configuration
+    model = lgb.LGBMClassifier(
         n_estimators=300,
         max_depth=4,
         learning_rate=0.0500,
-        random_state=42,
-        eval_metric='auc'
+        random_state=42
     )
     model.fit(X, y)
     print("   > Calibration Complete.")
@@ -58,4 +56,4 @@ def run_advanced_diagnostics():
     print("SUCCESS: 'submission.csv' is ready for upload.")
 
 if __name__ == "__main__":
-    run_advanced_diagnostics()
+    run_lightgbm_diagnostics()
