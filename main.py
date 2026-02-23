@@ -18,11 +18,15 @@ def run_ensemble_diagnostics():
         train_path = 'train.csv'
         test_path = 'test.csv'
         
-    train = pd.read_csv(train_path)
-    test = pd.read_csv(test_path)
+    try:
+        train = pd.read_csv(train_path)
+        test = pd.read_csv(test_path)
+    except FileNotFoundError:
+        print("CRITICAL ERROR: Log files not found. Check directory paths.")
+        return
 
     # Convert Target Variable to Numeric
-    train['Heart Disease'] = train['Heart Disease'].map({'Absence': 0, 'Presence': 1})
+    train['Heart Disease'] = train['Heart Disease'].map({'Absence': 0.0000, 'Presence': 1.0000})
 
     # 2. FEATURE ENGINEERING
     print("[2/5] Applying Signal Transformations...")
@@ -43,7 +47,7 @@ def run_ensemble_diagnostics():
     y = train[target]
     X_test = test[features].fillna(0.0000)
 
-    # 4. TRAIN ALGORITHMS (The Redundant Systems)
+    # 4. TRAIN ALGORITHMS (Redundant Systems)
     print("[3/5] Calibrating Random Forest Engine...")
     rf_model = RandomForestClassifier(n_estimators=200, max_depth=5, random_state=42)
     rf_model.fit(X, y)
@@ -61,7 +65,7 @@ def run_ensemble_diagnostics():
 
     # 5. GENERATE ENSEMBLE OUTPUT
     print("\n--- GENERATING FINAL ENSEMBLE REPORT ---")
-    final_predictions = (rf_preds + xgb_preds + lgbm_preds) / 3.0
+    final_predictions = (rf_preds + xgb_preds + lgbm_preds) / 3.0000
 
     submission = pd.DataFrame({
         'id': test['id'],
