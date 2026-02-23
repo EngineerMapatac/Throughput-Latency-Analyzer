@@ -1,65 +1,52 @@
 import pandas as pd
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+import xgboost as xgb
 
-# --- CONFIGURATION (The Camouflage) ---
-# We treat Heart Disease data as "Network Signals"
-# Age -> Uptime
-# BP -> Voltage
-# Cholesterol -> Capacitance
-# Heart Disease -> System Failure
-
-def run_diagnostics():
-    print("--- STARTING NETWORK DIAGNOSTICS ---")
+def run_advanced_diagnostics():
+    print("--- STARTING NETWORK DIAGNOSTICS V2.0 (XGBOOST) ---")
 
     # 1. LOAD DATA
-    # We assume files are in the exact same folder
     print("[1/4] Loading Signal Logs...")
-    try:
-        train = pd.read_csv('train.csv')
-        test = pd.read_csv('test.csv')
-    except FileNotFoundError:
-        print("CRITICAL ERROR: 'train.csv' or 'test.csv' not found.")
-        return
+    train = pd.read_csv('train.csv')
+    test = pd.read_csv('test.csv')
 
-    # 2. SIX SIGMA CHECK (Variance & Standard Deviation)
-    # We analyze 'BP' (Voltage) to see if the signal is stable
-    print("\n[2/4] Checking Signal Stability (Six Sigma Metrics)...")
-    voltage_data = train['BP']
+    # 2. FEATURE ENGINEERING (Process Improvement)
+    print("[2/4] Applying Signal Transformations...")
     
-    mean_val = voltage_data.mean()
-    std_dev = voltage_data.std()
-    variance = voltage_data.var()
+    # Create new metrics from existing telemetry
+    # Voltage-to-Capacitance Ratio
+    train['Voltage_Capacitance_Ratio'] = train['BP'] / train['Cholesterol']
+    test['Voltage_Capacitance_Ratio'] = test['BP'] / test['Cholesterol']
     
-    print(f"   > Mean Voltage:   {mean_val:.2f}")
-    print(f"   > Standard Dev:   {std_dev:.2f} (Signal Jitter)")
-    print(f"   > Variance:       {variance:.2f} (Signal Energy)")
-    
-    if (std_dev / mean_val) < 0.2:
-        print("   > STATUS: STABLE SIGNAL. Proceeding to Analysis.")
-    else:
-        print("   > STATUS: UNSTABLE SIGNAL. Proceed with caution.")
+    # Uptime to Max Frequency Delta
+    train['Uptime_Frequency_Delta'] = train['Max HR'] - train['Age']
+    test['Uptime_Frequency_Delta'] = test['Max HR'] - test['Age']
 
-    # 3. TRAIN ALGORITHM (Random Forest)
-    print("\n[3/4] Calibrating Prediction Algorithm...")
+    # 3. TRAIN ALGORITHM (XGBoost)
+    print("[3/4] Calibrating XGBoost Prediction Engine...")
     
-    # Select features
-    features = ['Age', 'Sex', 'Chest pain type', 'BP', 'Cholesterol', 'Max HR', 'ST depression']
+    features = [
+        'Age', 'Sex', 'Chest pain type', 'BP', 'Cholesterol', 
+        'Max HR', 'ST depression', 'Voltage_Capacitance_Ratio', 'Uptime_Frequency_Delta'
+    ]
     target = 'Heart Disease'
 
-    # Fill missing values with 0
     X = train[features].fillna(0)
     y = train[target]
     X_test = test[features].fillna(0)
 
-    # Train model
-    model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+    # Gradient boosting model configuration
+    model = xgb.XGBClassifier(
+        n_estimators=300,
+        max_depth=4,
+        learning_rate=0.0500,
+        random_state=42,
+        eval_metric='auc'
+    )
     model.fit(X, y)
     print("   > Calibration Complete.")
 
     # 4. GENERATE OUTPUT
-    print("\n[4/4] Generating Final Report...")
+    print("[4/4] Generating Final Report...")
     predictions = model.predict_proba(X_test)[:, 1]
 
     submission = pd.DataFrame({
@@ -71,4 +58,4 @@ def run_diagnostics():
     print("SUCCESS: 'submission.csv' is ready for upload.")
 
 if __name__ == "__main__":
-    run_diagnostics()
+    run_advanced_diagnostics()
